@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo } from "react";
 import { FlagTriangleRight, PencilLine, Trash2 } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, isPast, isValid } from "date-fns";
 import type { Task, TaskPriority } from "@/types/task";
 import { cn, formatDeadline } from "@/lib/utils";
 import { useSubtaskStore } from "@/store/useSubtaskStore";
@@ -39,9 +39,15 @@ export function TaskCard({ task, onEdit, onDelete, onStatusChange, onOpenSubtask
     };
   }, [subtasks]);
 
-  const deadlineDistance = task.deadline
-    ? formatDistanceToNow(new Date(task.deadline), { addSuffix: true })
-    : "Flexible";
+  const deadlineDate = task.deadline ? new Date(task.deadline) : null;
+  const isDeadlineValid = deadlineDate ? isValid(deadlineDate) : false;
+  const isOverdue = isDeadlineValid && deadlineDate ? isPast(deadlineDate) : false;
+
+  const deadlineDistance = isDeadlineValid && deadlineDate
+    ? formatDistanceToNow(deadlineDate, { addSuffix: true })
+    : task.deadline
+      ? "Invalid deadline"
+      : "Flexible";
 
   return (
     <article
@@ -90,8 +96,17 @@ export function TaskCard({ task, onEdit, onDelete, onStatusChange, onOpenSubtask
         <span className="rounded-full bg-slate-100 px-3 py-1 font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300">
           {task.category}
         </span>
-        <span>{formatDeadline(task.deadline)}</span>
-        <span className="ml-auto text-emerald-600 dark:text-emerald-400">{deadlineDistance}</span>
+        <span className={cn(isOverdue && "text-rose-600 dark:text-rose-400 font-semibold")}> 
+          {formatDeadline(task.deadline)}
+        </span>
+        <span
+          className={cn(
+            "ml-auto font-medium",
+            isOverdue ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"
+          )}
+        >
+          {deadlineDistance}
+        </span>
       </div>
 
       <footer className="mt-4 flex items-center justify-between gap-3">
