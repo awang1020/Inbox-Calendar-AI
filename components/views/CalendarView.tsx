@@ -19,20 +19,21 @@ interface CalendarEvent {
   resource: Task;
 }
 
-const priorityPalette: Record<TaskPriority, string> = {
-  high: "#f43f5e",
-  medium: "#f59e0b",
-  low: "#10b981"
+const priorityStyles: Record<TaskPriority, { backgroundColor: string; color: string }> = {
+  high: { backgroundColor: "#ef4444", color: "#ffffff" },
+  medium: { backgroundColor: "#f59e0b", color: "#111827" },
+  low: { backgroundColor: "#22c55e", color: "#ffffff" }
 };
 
 const eventPropGetter: EventPropGetter<CalendarEvent> = (event) => {
   const priority = event.resource.priority ?? "medium";
+  const { backgroundColor, color } = priorityStyles[priority];
 
   return {
-    className: "rounded-xl border-none shadow-sm",
+    className: clsx("calendar-event", `priority-${priority}`),
     style: {
-      backgroundColor: priorityPalette[priority],
-      color: "#fff"
+      backgroundColor,
+      color
     }
   };
 };
@@ -68,14 +69,27 @@ export function CalendarView({ tasks, onEdit, openCreate }: TaskPageRenderProps)
       const category = event.resource.category ?? "General";
       const categoryLabel = category.charAt(0).toUpperCase() + category.slice(1);
       const dueTime = format(event.start, "MMM d • h:mm a");
+      const priority = event.resource.priority ?? "medium";
+      const { color } = priorityStyles[priority];
+      const isMediumPriority = priority === "medium";
+      const primaryTextClass = isMediumPriority ? "text-slate-900" : "text-white";
+      const secondaryTextClass = isMediumPriority ? "text-slate-800" : "text-white/80";
+      const tertiaryTextClass = isMediumPriority ? "text-slate-700" : "text-white/70";
 
       return (
-        <div className="group relative flex flex-col gap-0.5 text-xs">
-          <span className="text-sm font-semibold leading-tight">{event.title}</span>
-          <span className="text-[11px] font-medium uppercase tracking-wide text-white/80">
+        <div className="group relative flex flex-col gap-0.5 text-xs" style={{ color }}>
+          <span className={clsx("text-sm font-semibold leading-tight", primaryTextClass)}>
+            {event.title}
+          </span>
+          <span
+            className={clsx(
+              "text-[11px] font-medium uppercase tracking-wide",
+              secondaryTextClass
+            )}
+          >
             {categoryLabel}
           </span>
-          <span className="text-[11px] text-white/80">{dueTime}</span>
+          <span className={clsx("text-[11px]", tertiaryTextClass)}>{dueTime}</span>
 
           <div className="pointer-events-none absolute left-1/2 top-0 hidden w-56 -translate-x-1/2 -translate-y-full rounded-xl bg-slate-900/95 p-3 text-left text-[11px] text-slate-100 shadow-xl ring-1 ring-white/10 transition group-hover:block">
             <p className="text-sm font-semibold leading-tight text-white">{event.title}</p>
@@ -92,7 +106,7 @@ export function CalendarView({ tasks, onEdit, openCreate }: TaskPageRenderProps)
     <>
       <TaskStats tasks={tasks} />
 
-      <section className="relative flex flex-col gap-6 rounded-2xl border border-slate-200/80 bg-white/80 p-6 shadow-lg backdrop-blur dark:border-slate-700/60 dark:bg-slate-900/60">
+      <section className="relative flex flex-col gap-6 rounded-2xl border border-slate-200/80 bg-white/80 p-6 shadow-lg backdrop-blur dark:border-[#1e293b] dark:bg-[#0b162c]/90">
         <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-1">
             <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">📆 Calendar View</h1>
@@ -101,13 +115,13 @@ export function CalendarView({ tasks, onEdit, openCreate }: TaskPageRenderProps)
             </p>
             <div className="mt-4 flex flex-wrap items-center gap-3 text-xs font-medium text-slate-500 dark:text-slate-400">
               <span className="flex items-center gap-2 rounded-full bg-slate-100/80 px-3 py-1 dark:bg-slate-800/60">
-                <span className="h-2.5 w-2.5 rounded-full bg-[#f43f5e]" /> High Priority
+                <span className="h-2.5 w-2.5 rounded-full bg-[#ef4444]" /> High Priority
               </span>
               <span className="flex items-center gap-2 rounded-full bg-slate-100/80 px-3 py-1 dark:bg-slate-800/60">
                 <span className="h-2.5 w-2.5 rounded-full bg-[#f59e0b]" /> Medium Priority
               </span>
               <span className="flex items-center gap-2 rounded-full bg-slate-100/80 px-3 py-1 dark:bg-slate-800/60">
-                <span className="h-2.5 w-2.5 rounded-full bg-[#10b981]" /> Low Priority
+                <span className="h-2.5 w-2.5 rounded-full bg-[#22c55e]" /> Low Priority
               </span>
             </div>
           </div>
@@ -131,7 +145,7 @@ export function CalendarView({ tasks, onEdit, openCreate }: TaskPageRenderProps)
           </div>
         </header>
 
-        <div className="relative rounded-2xl border border-slate-200/60 bg-white/60 shadow-inner dark:border-slate-700/60 dark:bg-slate-900/40">
+        <div className="relative rounded-2xl border border-slate-200/60 bg-white/60 shadow-inner dark:border-[#1e293b] dark:bg-[#0f172a]">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentView}
