@@ -1,3 +1,5 @@
+@import "react-big-calendar/lib/css/react-big-calendar.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -30,4 +32,44 @@ body {
 
 ::-webkit-scrollbar-track {
   @apply bg-transparent;
+}
+
+.rbc-calendar {
+  @apply text-slate-700 dark:text-slate-200;
+}
+
+.rbc-toolbar {
+  @apply mb-4 flex-wrap gap-2 text-sm font-medium text-slate-600 dark:text-slate-300;
+}
+
+.rbc-toolbar button {
+  @apply rounded-full border border-slate-200 bg-white px-3 py-1 text-sm font-medium text-slate-600 transition hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[hsl(var(--accent))] dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700;
+}
+
+.rbc-toolbar button.rbc-active {
+  @apply border-transparent bg-[hsl(var(--accent))] text-white shadow;
+}
+
+.rbc-header {
+  @apply border-slate-200 bg-slate-50/60 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:border-slate-700 dark:bg-slate-900/40 dark:text-slate-400;
+}
+
+.rbc-month-view, .rbc-time-view, .rbc-agenda-view {
+  @apply rounded-2xl border border-slate-200/70 bg-white/80 shadow-inner dark:border-slate-700/60 dark:bg-slate-900/40;
+}
+
+.rbc-time-header-content, .rbc-time-content > * + * {
+  @apply border-slate-200/80 dark:border-slate-700/60;
+}
+
+.rbc-today {
+  @apply bg-[hsl(var(--accent))]/10;
+}
+
+.rbc-agenda-table {
+  @apply border border-slate-200/70 dark:border-slate-700/60;
+}
+
+.rbc-agenda-date-cell, .rbc-agenda-time-cell, .rbc-agenda-event-cell {
+  @apply border-slate-200/70 dark:border-slate-700/60;
 }
