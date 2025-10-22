@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useMemo, useReducer } from "react";
 import { nanoid } from "nanoid";
-import type { Task } from "@/types/task";
+import type { Tag, Task, TaskTag } from "@/types/task";
 
 export type TaskPayload = Omit<Task, "id" | "completed"> & {
   completed?: boolean;
@@ -35,7 +35,25 @@ function taskReducer(state: Task[], action: TaskAction): Task[] {
   }
 }
 
-const seedTasks: Task[] = [
+const seedTags: Tag[] = [
+  { id: "design", name: "Design" },
+  { id: "research", name: "Research" },
+  { id: "frontend", name: "Frontend" },
+  { id: "study", name: "Study" },
+  { id: "personal", name: "Personal" },
+  { id: "wellness", name: "Wellness" }
+];
+
+const seedTaskTags: TaskTag[] = [
+  { taskId: "1", tagId: "design" },
+  { taskId: "1", tagId: "research" },
+  { taskId: "1", tagId: "frontend" },
+  { taskId: "2", tagId: "study" },
+  { taskId: "3", tagId: "personal" },
+  { taskId: "4", tagId: "wellness" }
+];
+
+const baseTasks: Omit<Task, "tags">[] = [
   {
     id: "1",
     title: "Design onboarding flow",
@@ -78,6 +96,15 @@ const seedTasks: Task[] = [
   }
 ];
 
+const tagIndex = new Map(seedTags.map((tag) => [tag.id, tag]));
+
+const seedTasks: Task[] = baseTasks.map((task) => ({
+  ...task,
+  tags: seedTaskTags
+    .filter((relation) => relation.taskId === task.id)
+    .map((relation) => tagIndex.get(relation.tagId)!)
+}));
+
 export function TaskProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(taskReducer, seedTasks);
 
@@ -85,6 +112,7 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
     const task: Task = {
       ...input,
       id: nanoid(),
+      tags: input.tags ?? [],
       completed: input.completed ?? input.status === "completed"
     };
     dispatch({ type: "ADD", payload: task });
