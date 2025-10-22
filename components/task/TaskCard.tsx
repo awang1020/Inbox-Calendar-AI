@@ -1,5 +1,5 @@
 import { FlagTriangleRight, PencilLine, Trash2 } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, isBefore, startOfToday } from "date-fns";
 import type { Task, TaskPriority } from "@/types/task";
 import { cn, formatDeadline } from "@/lib/utils";
 
@@ -17,9 +17,12 @@ const priorityStyles: Record<TaskPriority, string> = {
 };
 
 export function TaskCard({ task, onEdit, onDelete, onStatusChange }: TaskCardProps) {
-  const deadlineDistance = task.deadline
-    ? formatDistanceToNow(new Date(task.deadline), { addSuffix: true })
+  const parsedDeadline = task.deadline ? new Date(task.deadline) : null;
+  const validDeadline = parsedDeadline && !Number.isNaN(parsedDeadline.valueOf()) ? parsedDeadline : null;
+  const deadlineDistance = validDeadline
+    ? formatDistanceToNow(validDeadline, { addSuffix: true })
     : "Flexible";
+  const isOverdue = validDeadline ? isBefore(validDeadline, startOfToday()) : false;
 
   return (
     <article className="group rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-slate-700/60 dark:bg-slate-900">
@@ -38,7 +41,9 @@ export function TaskCard({ task, onEdit, onDelete, onStatusChange }: TaskCardPro
         <span className="rounded-full bg-slate-100 px-3 py-1 font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300">
           {task.category}
         </span>
-        <span>{formatDeadline(task.deadline)}</span>
+        <span className={cn(isOverdue && "font-semibold text-rose-600 dark:text-rose-400")}>
+          {formatDeadline(task.deadline)}
+        </span>
         <span className="ml-auto text-emerald-600 dark:text-emerald-400">{deadlineDistance}</span>
       </div>
 
