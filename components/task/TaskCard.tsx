@@ -47,6 +47,19 @@ export function TaskCard({ task, onEdit, onDelete, onStatusChange }: TaskCardPro
         <span className="ml-auto text-emerald-600 dark:text-emerald-400">{deadlineDistance}</span>
       </div>
 
+      {task.tags.length > 0 && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {task.tags.map((tag) => (
+            <span
+              key={tag.id}
+              className="inline-flex items-center rounded-full bg-[hsl(var(--accent))]/10 px-3 py-1 text-xs font-medium text-[hsl(var(--accent))] dark:bg-[hsl(var(--accent))]/20"
+            >
+              #{tag.name}
+            </span>
+          ))}
+        </div>
+      )}
+
       <footer className="mt-4 flex items-center justify-between gap-3">
         <select
           value={task.status}

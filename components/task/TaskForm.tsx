@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { X } from "lucide-react";
-import type { Task, TaskCategory, TaskPriority, TaskStatus } from "@/types/task";
+import { nanoid } from "nanoid";
+import type { Tag, Task, TaskCategory, TaskPriority, TaskStatus } from "@/types/task";
 
 interface TaskFormProps {
   task?: Task | null;
@@ -15,6 +16,15 @@ const categories: TaskCategory[] = ["work", "personal", "study", "wellness", "ot
 const priorities: TaskPriority[] = ["high", "medium", "low"];
 const statuses: TaskStatus[] = ["backlog", "in_progress", "in_review", "completed"];
 
+const defaultTags: Tag[] = [
+  { id: "design", name: "Design" },
+  { id: "frontend", name: "Frontend" },
+  { id: "research", name: "Research" },
+  { id: "planning", name: "Planning" },
+  { id: "wellness", name: "Wellness" },
+  { id: "personal", name: "Personal" }
+];
+
 const blankTask: Task = {
   id: "temp",
   title: "",
@@ -23,14 +33,29 @@ const blankTask: Task = {
   priority: "medium",
   deadline: "",
   status: "backlog",
-  completed: false
+  completed: false,
+  tags: []
 };
 
 export function TaskForm({ task, open, onOpenChange, onSubmit }: TaskFormProps) {
   const [draft, setDraft] = useState<Task>(task ?? blankTask);
+  const [availableTags, setAvailableTags] = useState<Tag[]>(() => defaultTags);
+  const [tagQuery, setTagQuery] = useState("");
 
   useEffect(() => {
     setDraft(task ?? blankTask);
+    setTagQuery("");
+    if (task?.tags?.length) {
+      setAvailableTags((prev) => {
+        const map = new Map(prev.map((tag) => [tag.id, tag]));
+        task.tags.forEach((tag) => {
+          if (!map.has(tag.id)) {
+            map.set(tag.id, tag);
+          }
+        });
+        return Array.from(map.values());
+      });
+    }
   }, [task]);
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -44,6 +69,40 @@ export function TaskForm({ task, open, onOpenChange, onSubmit }: TaskFormProps) 
   function updateDraft<K extends keyof Task>(key: K, value: Task[K]) {
     setDraft((prev) => ({ ...prev, [key]: value }));
   }
+
+  function handleCommitTag(rawValue: string) {
+    const name = rawValue.trim();
+    if (!name) return;
+
+    const normalizedName = name.replace(/\s+/g, " ");
+    let resolved = availableTags.find((existing) => existing.name.toLowerCase() === normalizedName.toLowerCase());
+
+    if (!resolved) {
+      const newTag: Tag = { id: nanoid(), name: normalizedName };
+      resolved = newTag;
+      setAvailableTags((prev) => [...prev, newTag]);
+    }
+
+    if (!draft.tags.some((existing) => existing.id === resolved.id)) {
+      updateDraft("tags", [...draft.tags, resolved]);
+    }
+
+    setTagQuery("");
+  }
+
+  function removeTag(id: string) {
+    updateDraft("tags", draft.tags.filter((tag) => tag.id !== id));
+  }
+
+  const filteredTagOptions = useMemo(
+    () =>
+      availableTags.filter(
+        (tag) =>
+          !draft.tags.some((selected) => selected.id === tag.id) &&
+          tag.name.toLowerCase().includes(tagQuery.toLowerCase())
+      ),
+    [availableTags, draft.tags, tagQuery]
+  );
 
   return (
     <div className={`fixed inset-0 z-50 ${open ? "pointer-events-auto" : "pointer-events-none"}`} aria-hidden={!open}>
@@ -157,6 +216,57 @@ export function TaskForm({ task, open, onOpenChange, onSubmit }: TaskFormProps) 
               </select>
             </label>
           </div>
+
+          <label className="flex flex-col gap-2">
+            <span className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Tags</span>
+            {draft.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {draft.tags.map((tag) => (
+                  <span
+                    key={tag.id}
+                    className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-200"
+                  >
+                    #{tag.name}
+                    <button
+                      type="button"
+                      onClick={() => removeTag(tag.id)}
+                      className="rounded-full p-0.5 text-slate-400 transition hover:text-slate-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[hsl(var(--accent))] dark:text-slate-400 dark:hover:text-slate-200"
+                      aria-label={`Remove ${tag.name}`}
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+            <div>
+              <input
+                type="text"
+                list="task-form-tag-options"
+                value={tagQuery}
+                onChange={(event) => setTagQuery(event.target.value)}
+                onKeyDown={(event) => {
+                  if (["Enter", "Tab", ","].includes(event.key)) {
+                    const value = event.currentTarget.value;
+                    if (value.trim()) {
+                      event.preventDefault();
+                      handleCommitTag(value);
+                    } else if (event.key !== "Tab") {
+                      event.preventDefault();
+                    }
+                  }
+                }}
+                placeholder="Add a tag and press Enter"
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-[hsl(var(--accent))] focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+              />
+              <datalist id="task-form-tag-options">
+                {filteredTagOptions.map((tag) => (
+                  <option key={tag.id} value={tag.name} />
+                ))}
+              </datalist>
+              <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">Type to search existing tags or create a new one.</p>
+            </div>
+          </label>
 
           <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
             <input
