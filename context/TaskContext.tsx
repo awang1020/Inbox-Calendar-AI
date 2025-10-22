@@ -42,7 +42,7 @@ const seedTasks: Task[] = [
     description: "Map out wireframes and define happy path for new users.",
     category: "work",
     priority: "high",
-    deadline: new Date().toISOString(),
+    deadline: "2024-05-18T17:00:00.000Z",
     status: "in_progress",
     completed: false
   },
@@ -52,7 +52,7 @@ const seedTasks: Task[] = [
     description: "Review graphs and dynamic programming problems.",
     category: "study",
     priority: "medium",
-    deadline: new Date(Date.now() + 1000 * 60 * 60 * 72).toISOString(),
+    deadline: "2024-05-21T15:00:00.000Z",
     status: "backlog",
     completed: false
   },
@@ -62,7 +62,7 @@ const seedTasks: Task[] = [
     description: "Plan balanced meals and buy groceries for the week.",
     category: "personal",
     priority: "low",
-    deadline: new Date(Date.now() + 1000 * 60 * 60 * 24 * 2).toISOString(),
+    deadline: "2024-05-19T19:30:00.000Z",
     status: "in_review",
     completed: false
   },
@@ -72,7 +72,7 @@ const seedTasks: Task[] = [
     description: "45-minute restorative flow to wind down.",
     category: "wellness",
     priority: "low",
-    deadline: new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString(),
+    deadline: "2024-05-19T12:00:00.000Z",
     status: "completed",
     completed: true
   }
