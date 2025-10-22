@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { MoonStar, SunMedium } from "lucide-react";
 
@@ -8,11 +9,23 @@ interface AppHeaderProps {
 }
 
 export function AppHeader({ onCreate }: AppHeaderProps) {
-  const { theme, setTheme } = useTheme();
+  const { theme, resolvedTheme, setTheme } = useTheme();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   function toggleTheme() {
-    setTheme(theme === "dark" ? "light" : "dark");
+    const nextTheme = (resolvedTheme ?? theme) === "dark" ? "light" : "dark";
+    setTheme(nextTheme);
   }
+
+  const themeIcon = !isMounted
+    ? null
+    : (resolvedTheme ?? theme) === "dark"
+      ? <SunMedium className="h-5 w-5" />
+      : <MoonStar className="h-5 w-5" />;
 
   return (
     <header className="border-b border-white/10 bg-white/40 backdrop-blur supports-[backdrop-filter]:bg-white/40 dark:bg-slate-900/60">
@@ -30,7 +43,7 @@ export function AppHeader({ onCreate }: AppHeaderProps) {
             className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:scale-[1.02] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[hsl(var(--accent))] dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
             aria-label="Toggle theme"
           >
-            {theme === "dark" ? <SunMedium className="h-5 w-5" /> : <MoonStar className="h-5 w-5" />}
+            {themeIcon}
           </button>
 
           <button
