@@ -21,6 +21,9 @@
     "paths": {
       "@/*": [
         "./*"
+      ],
+      "recharts": [
+        "lib/recharts"
       ]
     },
     "plugins": [
