@@ -119,7 +119,13 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const updateTask = useCallback((id: string, updates: Partial<Task>) => {
-    dispatch({ type: "UPDATE", payload: { id, updates } });
+    const normalizedUpdates = { ...updates };
+
+    if ("status" in updates && typeof updates.completed === "undefined") {
+      normalizedUpdates.completed = updates.status === "completed";
+    }
+
+    dispatch({ type: "UPDATE", payload: { id, updates: normalizedUpdates } });
   }, []);
 
   const deleteTask = useCallback((id: string) => {
