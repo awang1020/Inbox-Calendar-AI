@@ -9,6 +9,7 @@ import { TaskStats } from "@/components/task/TaskStats";
 import { TaskProvider, useTasks } from "@/context/TaskContext";
 import type { Task } from "@/types/task";
 import { AppHeader } from "./AppHeader";
+import { TaskSubtaskDrawer } from "@/components/task/TaskSubtaskDrawer";
 
 const defaultFilters: Filters = {
   query: "",
@@ -23,6 +24,8 @@ function DashboardShell() {
   const [filters, setFilters] = useState<Filters>(defaultFilters);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [activeTask, setActiveTask] = useState<Task | null>(null);
+  const [isSubtaskDrawerOpen, setIsSubtaskDrawerOpen] = useState(false);
 
   const filteredTasks = tasks
     .filter((task) => {
@@ -76,6 +79,15 @@ function DashboardShell() {
 
   function handleDeleteTask(id: string) {
     deleteTask(id);
+    if (activeTask?.id === id) {
+      setActiveTask(null);
+      setIsSubtaskDrawerOpen(false);
+    }
+  }
+
+  function handleOpenSubtasks(task: Task) {
+    setActiveTask(task);
+    setIsSubtaskDrawerOpen(true);
   }
 
   return (
@@ -86,7 +98,13 @@ function DashboardShell() {
         <TaskStats tasks={tasks} />
         <TaskFilters filters={filters} onChange={setFilters} />
 
-        <TaskBoard tasks={filteredTasks} onEdit={handleEditTask} onDelete={handleDeleteTask} onStatusChange={updateTask} />
+        <TaskBoard
+          tasks={filteredTasks}
+          onEdit={handleEditTask}
+          onDelete={handleDeleteTask}
+          onStatusChange={updateTask}
+          onOpenSubtasks={handleOpenSubtasks}
+        />
       </main>
 
       <button
@@ -109,6 +127,15 @@ function DashboardShell() {
         }}
         onSubmit={handleSubmit}
         task={editingTask}
+      />
+
+      <TaskSubtaskDrawer
+        task={activeTask}
+        open={isSubtaskDrawerOpen && Boolean(activeTask)}
+        onOpenChange={(open) => {
+          setIsSubtaskDrawerOpen(open);
+          if (!open) setActiveTask(null);
+        }}
       />
     </div>
   );

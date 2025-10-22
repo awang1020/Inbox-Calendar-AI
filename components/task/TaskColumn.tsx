@@ -13,6 +13,7 @@ interface TaskColumnProps {
   onEdit: (task: Task) => void;
   onDelete: (id: string) => void;
   onStatusChange: (id: string, updates: Partial<Task>) => void;
+  onOpenSubtasks: (task: Task) => void;
 }
 
 const statusAccent: Record<TaskStatus, string> = {
@@ -22,7 +23,7 @@ const statusAccent: Record<TaskStatus, string> = {
   completed: "from-emerald-400/30 to-emerald-500/30"
 };
 
-export function TaskColumn({ column, tasks, onEdit, onDelete, onStatusChange }: TaskColumnProps) {
+export function TaskColumn({ column, tasks, onEdit, onDelete, onStatusChange, onOpenSubtasks }: TaskColumnProps) {
   return (
     <article className="flex h-full flex-col rounded-2xl border border-slate-200/70 bg-white/70 p-5 shadow-sm backdrop-blur dark:border-slate-800/60 dark:bg-slate-900/50">
       <header className="mb-4 flex items-start justify-between">
@@ -35,7 +36,14 @@ export function TaskColumn({ column, tasks, onEdit, onDelete, onStatusChange }: 
 
       <div className="flex flex-1 flex-col gap-3">
         {tasks.map((task) => (
-          <TaskCard key={task.id} task={task} onEdit={onEdit} onDelete={onDelete} onStatusChange={onStatusChange} />
+          <TaskCard
+            key={task.id}
+            task={task}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            onStatusChange={onStatusChange}
+            onOpenSubtasks={onOpenSubtasks}
+          />
         ))}
 
         {!tasks.length && (

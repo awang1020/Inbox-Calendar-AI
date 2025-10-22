@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useMemo, useReducer } from "react";
 import { nanoid } from "nanoid";
 import type { Task } from "@/types/task";
+import { seededSubtasks } from "@/lib/subtaskStore";
 
 export type TaskPayload = Omit<Task, "id" | "completed"> & {
   completed?: boolean;
@@ -44,7 +45,8 @@ const seedTasks: Task[] = [
     priority: "high",
     deadline: new Date().toISOString(),
     status: "in_progress",
-    completed: false
+    completed: false,
+    subtasks: seededSubtasks["1"]
   },
   {
     id: "2",
@@ -54,7 +56,8 @@ const seedTasks: Task[] = [
     priority: "medium",
     deadline: new Date(Date.now() + 1000 * 60 * 60 * 72).toISOString(),
     status: "backlog",
-    completed: false
+    completed: false,
+    subtasks: []
   },
   {
     id: "3",
@@ -64,7 +67,8 @@ const seedTasks: Task[] = [
     priority: "low",
     deadline: new Date(Date.now() + 1000 * 60 * 60 * 24 * 2).toISOString(),
     status: "in_review",
-    completed: false
+    completed: false,
+    subtasks: seededSubtasks["3"]
   },
   {
     id: "4",
@@ -74,7 +78,8 @@ const seedTasks: Task[] = [
     priority: "low",
     deadline: new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString(),
     status: "completed",
-    completed: true
+    completed: true,
+    subtasks: []
   }
 ];
 
@@ -85,7 +90,8 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
     const task: Task = {
       ...input,
       id: nanoid(),
-      completed: input.completed ?? input.status === "completed"
+      completed: input.completed ?? input.status === "completed",
+      subtasks: input.subtasks ?? []
     };
     dispatch({ type: "ADD", payload: task });
   }, []);

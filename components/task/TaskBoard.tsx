@@ -7,6 +7,7 @@ interface TaskBoardProps {
   onEdit: (task: Task) => void;
   onDelete: (id: string) => void;
   onStatusChange: (id: string, updates: Partial<Task>) => void;
+  onOpenSubtasks: (task: Task) => void;
 }
 
 const columns: { status: TaskStatus; title: string; description: string }[] = [
@@ -32,7 +33,7 @@ const columns: { status: TaskStatus; title: string; description: string }[] = [
   }
 ];
 
-export function TaskBoard({ tasks, onEdit, onDelete, onStatusChange }: TaskBoardProps) {
+export function TaskBoard({ tasks, onEdit, onDelete, onStatusChange, onOpenSubtasks }: TaskBoardProps) {
   if (!tasks.length) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-slate-300 bg-white/70 p-16 text-center shadow-inner dark:border-slate-700/70 dark:bg-slate-900/40">
@@ -57,6 +58,7 @@ export function TaskBoard({ tasks, onEdit, onDelete, onStatusChange }: TaskBoard
           onEdit={onEdit}
           onDelete={onDelete}
           onStatusChange={onStatusChange}
+          onOpenSubtasks={onOpenSubtasks}
         />
       ))}
     </section>
