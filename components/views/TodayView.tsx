@@ -1,78 +1,172 @@
 "use client";
 
 import { useMemo } from "react";
-import { isSameDay } from "date-fns";
-import { TaskCard } from "@/components/task/TaskCard";
+import { isBefore, isSameDay, startOfToday } from "date-fns";
+import { TodayTaskCard } from "@/components/task/TodayTaskCard";
 import { TaskStats } from "@/components/task/TaskStats";
 import type { TaskPageRenderProps } from "@/components/layout/TaskPageContainer";
-import type { TaskPriority } from "@/types/task";
+import type { Task } from "@/types/task";
 
-const priorityOrder: TaskPriority[] = ["high", "medium", "low"];
-const priorityLabels: Record<TaskPriority, string> = {
-  high: "High priority",
-  medium: "Medium priority",
-  low: "Low priority"
-};
-const priorityColors: Record<TaskPriority, string> = {
-  high: "from-rose-500/20 to-rose-500/10 text-rose-600 dark:text-rose-300",
-  medium: "from-amber-500/20 to-amber-500/10 text-amber-600 dark:text-amber-300",
-  low: "from-emerald-500/20 to-emerald-500/10 text-emerald-600 dark:text-emerald-300"
-};
+interface GroupedTask {
+  task: Task;
+  deadline: Date | null;
+}
 
-export function TodayView({ tasks, onEdit, onDelete, onStatusChange }: TaskPageRenderProps) {
-  const groupedTasks = useMemo(() => {
-    const today = new Date();
-    const dueToday = tasks.filter((task) => task.deadline && isSameDay(new Date(task.deadline), today));
+type GroupId = "overdue" | "morning" | "afternoon" | "evening";
 
-    return priorityOrder.map((priority) => ({
-      priority,
-      tasks: dueToday.filter((task) => task.priority === priority)
+const groupDefinitions: { id: GroupId; title: string; description: string }[] = [
+  {
+    id: "overdue",
+    title: "Overdue",
+    description: "Make up for the tasks that slipped past."
+  },
+  {
+    id: "morning",
+    title: "Morning (0–12h)",
+    description: "Ease into the day with these priorities."
+  },
+  {
+    id: "afternoon",
+    title: "Afternoon (12–18h)",
+    description: "Keep momentum going through the afternoon."
+  },
+  {
+    id: "evening",
+    title: "Evening (18–24h)",
+    description: "Wrap things up before the day ends."
+  }
+];
+
+export function TodayView({ tasks, onEdit, onDelete, onStatusChange, openCreate }: TaskPageRenderProps) {
+  const { groups, totalTasks, now } = useMemo(() => {
+    const currentDate = new Date();
+    const todayStart = startOfToday();
+
+    const buckets: Record<GroupId, GroupedTask[]> = {
+      overdue: [],
+      morning: [],
+      afternoon: [],
+      evening: []
+    };
+
+    tasks.forEach((task) => {
+      if (task.completed) return;
+
+      const parsedDeadline = task.deadline ? new Date(task.deadline) : null;
+      const deadline = parsedDeadline && !Number.isNaN(parsedDeadline.valueOf()) ? parsedDeadline : null;
+
+      if (!deadline) {
+        buckets.morning.push({ task, deadline: null });
+        return;
+      }
+
+      if (isBefore(deadline, currentDate)) {
+        buckets.overdue.push({ task, deadline });
+        return;
+      }
+
+      if (!isSameDay(deadline, currentDate)) {
+        if (isBefore(deadline, todayStart)) {
+          buckets.overdue.push({ task, deadline });
+        }
+        return;
+      }
+
+      const hour = deadline.getHours();
+
+      if (hour < 12) {
+        buckets.morning.push({ task, deadline });
+      } else if (hour < 18) {
+        buckets.afternoon.push({ task, deadline });
+      } else {
+        buckets.evening.push({ task, deadline });
+      }
+    });
+
+    const sortedGroups = groupDefinitions.map((definition) => ({
+      ...definition,
+      tasks: buckets[definition.id].sort((a, b) => {
+        const aTime = a.deadline?.getTime() ?? Number.POSITIVE_INFINITY;
+        const bTime = b.deadline?.getTime() ?? Number.POSITIVE_INFINITY;
+        return aTime - bTime;
+      })
     }));
+
+    const remainingTasks = sortedGroups.reduce((sum, group) => sum + group.tasks.length, 0);
+
+    return { groups: sortedGroups, totalTasks: remainingTasks, now: currentDate };
   }, [tasks]);
 
-  const hasDueTasks = groupedTasks.some((group) => group.tasks.length > 0);
-
   return (
-    <>
+    <div className="flex flex-1 flex-col gap-6 pb-16">
+      <div className="sticky top-0 z-10 -mx-6 border-b border-slate-200/80 bg-[hsl(var(--background))]/95 px-6 py-6 backdrop-blur-md dark:border-slate-800/70">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Today's Tasks</h2>
+            <p className="text-sm text-slate-600 dark:text-slate-400">Stay focused with a clear view of what needs attention today.</p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <span className="inline-flex items-center rounded-full bg-white/80 px-4 py-1.5 text-sm font-medium text-slate-700 shadow-sm ring-1 ring-slate-200/70 dark:bg-slate-900/60 dark:text-slate-200 dark:ring-slate-700/60">
+              {totalTasks === 1 ? "1 task" : `${totalTasks} tasks`}
+            </span>
+            <button
+              onClick={openCreate}
+              className="inline-flex items-center rounded-full bg-[hsl(var(--accent))] px-4 py-2 text-sm font-medium text-white shadow-card transition hover:scale-[1.03] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[hsl(var(--accent))]"
+            >
+              New Task
+            </button>
+          </div>
+        </div>
+      </div>
+
       <TaskStats tasks={tasks} />
 
-      {hasDueTasks ? (
-        <section className="grid gap-4 lg:grid-cols-3">
-          {groupedTasks.map((group) => (
-            <div
-              key={group.priority}
-              className="flex flex-col gap-4 rounded-2xl border border-slate-200/80 bg-white/70 p-5 shadow-sm dark:border-slate-700/60 dark:bg-slate-900/60"
-            >
-              <header className={`rounded-2xl bg-gradient-to-br px-4 py-3 text-sm font-semibold ${priorityColors[group.priority]}`}>
-                {priorityLabels[group.priority]}
+      {totalTasks > 0 ? (
+        <div className="flex flex-col gap-10">
+          {groups.map((group) => (
+            <section key={group.id} className="space-y-5">
+              <header className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">{group.title}</h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">{group.description}</p>
+                </div>
+                <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                  {group.tasks.length} {group.tasks.length === 1 ? "task" : "tasks"}
+                </span>
               </header>
 
               {group.tasks.length ? (
-                <div className="space-y-3">
-                  {group.tasks.map((task) => (
-                    <TaskCard
-                      key={task.id}
-                      task={task}
+                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                  {group.tasks.map((entry) => (
+                    <TodayTaskCard
+                      key={entry.task.id}
+                      task={entry.task}
+                      deadline={entry.deadline}
+                      currentDate={now}
+                      isOverdue={group.id === "overdue"}
                       onEdit={onEdit}
                       onDelete={onDelete}
-                      onStatusChange={onStatusChange}
+                      onComplete={(id) => onStatusChange(id, { status: "completed", completed: true })}
                     />
                   ))}
                 </div>
               ) : (
-                <p className="rounded-xl border border-dashed border-slate-300 bg-white/80 p-6 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900/40 dark:text-slate-400">
-                  No {group.priority} priority tasks due today.
-                </p>
+                <div className="rounded-2xl border border-dashed border-slate-300/80 bg-white/70 p-8 text-center text-sm text-slate-500 shadow-inner dark:border-slate-700/70 dark:bg-slate-900/40 dark:text-slate-400">
+                  No tasks scheduled for this period.
+                </div>
               )}
-            </div>
+            </section>
           ))}
-        </section>
+        </div>
       ) : (
-        <div className="flex flex-1 flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-slate-300 bg-white/70 p-16 text-center shadow-inner dark:border-slate-700/70 dark:bg-slate-900/40">
-          <p className="text-lg font-medium text-slate-700 dark:text-slate-200">You're all caught up!</p>
-          <p className="text-sm text-slate-500 dark:text-slate-400">No tasks are due today. Enjoy the breather.</p>
+        <div className="flex flex-1 items-center justify-center py-24">
+          <div className="flex max-w-md flex-col items-center gap-3 text-center">
+            <p className="text-2xl font-semibold text-slate-800 dark:text-slate-100">🎉 You're all caught up for today!</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">No pending tasks remain for the day. Enjoy your downtime.</p>
+          </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
