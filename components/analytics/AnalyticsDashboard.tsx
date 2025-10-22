@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { endOfWeek, format, isAfter, isBefore, isWithinInterval, startOfWeek, subWeeks } from "date-fns";
 import { AlertTriangle, CheckCircle2, ClipboardList, PieChart as PieChartIcon } from "lucide-react";
-import { Bar, BarChart, Line, LineChart, Pie, PieChart, ResponsiveContainer, Cell } from "recharts";
+import { Bar, BarChart, Line, LineChart, Pie, PieChart, ResponsiveContainer, Cell } from "@/lib/recharts";
 import { useTasks } from "@/context/TaskContext";
 
 const STATUS_COLORS: Record<string, string> = {
