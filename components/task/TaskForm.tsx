@@ -23,7 +23,8 @@ const blankTask: Task = {
   priority: "medium",
   deadline: "",
   status: "backlog",
-  completed: false
+  completed: false,
+  subtasks: []
 };
 
 export function TaskForm({ task, open, onOpenChange, onSubmit }: TaskFormProps) {

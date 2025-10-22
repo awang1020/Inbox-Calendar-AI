@@ -17,7 +17,8 @@
     "react-dom": "^18.2.0",
     "nanoid": "^5.0.7",
     "tailwind-merge": "^2.2.2",
-    "lucide-react": "^0.378.0"
+    "lucide-react": "^0.378.0",
+    "zustand": "^4.5.2"
   },
   "devDependencies": {
     "@types/node": "^20.12.7",
