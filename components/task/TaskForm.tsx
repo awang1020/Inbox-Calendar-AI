@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { X } from "lucide-react";
 import { nanoid } from "nanoid";
+import { DEFAULT_USER_ID } from "@/lib/constants";
 import type { Tag, Task, TaskCategory, TaskPriority, TaskStatus } from "@/types/task";
 
 interface TaskFormProps {
@@ -27,6 +28,7 @@ const defaultTags: Tag[] = [
 
 const blankTask: Task = {
   id: "temp",
+  userId: DEFAULT_USER_ID,
   title: "",
   description: "",
   category: "work",

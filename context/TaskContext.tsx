@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useMemo, useReducer } from "react";
 import { nanoid } from "nanoid";
+import { DEFAULT_USER_ID } from "@/lib/constants";
 import type { Tag, Task, TaskTag } from "@/types/task";
 
 export type TaskPayload = Omit<Task, "id" | "completed"> & {
@@ -56,6 +57,7 @@ const seedTaskTags: TaskTag[] = [
 const baseTasks: Omit<Task, "tags">[] = [
   {
     id: "1",
+    userId: DEFAULT_USER_ID,
     title: "Design onboarding flow",
     description: "Map out wireframes and define happy path for new users.",
     category: "work",
@@ -66,6 +68,7 @@ const baseTasks: Omit<Task, "tags">[] = [
   },
   {
     id: "2",
+    userId: DEFAULT_USER_ID,
     title: "Study for data structures exam",
     description: "Review graphs and dynamic programming problems.",
     category: "study",
@@ -76,6 +79,7 @@ const baseTasks: Omit<Task, "tags">[] = [
   },
   {
     id: "3",
+    userId: DEFAULT_USER_ID,
     title: "Weekly meal prep",
     description: "Plan balanced meals and buy groceries for the week.",
     category: "personal",
@@ -86,6 +90,7 @@ const baseTasks: Omit<Task, "tags">[] = [
   },
   {
     id: "4",
+    userId: DEFAULT_USER_ID,
     title: "Yoga session",
     description: "45-minute restorative flow to wind down.",
     category: "wellness",
