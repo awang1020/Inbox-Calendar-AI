@@ -5,7 +5,7 @@ import { TaskBoard } from "@/components/task/TaskBoard";
 import { TaskFilters, type Filters } from "@/components/task/TaskFilters";
 import { TaskStats } from "@/components/task/TaskStats";
 import type { Task } from "@/types/task";
-import { TaskPageContainer, type TaskPageRenderProps } from "./TaskPageContainer";
+import type { TaskPageRenderProps } from "@/components/layout/TaskPageContainer";
 
 const defaultFilters: Filters = {
   query: "",
@@ -46,7 +46,7 @@ function filterTasks(tasks: Task[], filters: Filters) {
     });
 }
 
-function BoardContent({ tasks, onEdit, onDelete, onStatusChange }: TaskPageRenderProps) {
+export function BoardView({ tasks, onEdit, onDelete, onStatusChange }: TaskPageRenderProps) {
   const [filters, setFilters] = useState<Filters>(defaultFilters);
   const filteredTasks = useMemo(() => filterTasks(tasks, filters), [tasks, filters]);
 
@@ -54,15 +54,12 @@ function BoardContent({ tasks, onEdit, onDelete, onStatusChange }: TaskPageRende
     <>
       <TaskStats tasks={tasks} />
       <TaskFilters filters={filters} onChange={setFilters} />
-      <TaskBoard tasks={filteredTasks} onEdit={onEdit} onDelete={onDelete} onStatusChange={onStatusChange} />
+      <TaskBoard
+        tasks={filteredTasks}
+        onEdit={onEdit}
+        onDelete={onDelete}
+        onStatusChange={onStatusChange}
+      />
     </>
-  );
-}
-
-export function AppShell() {
-  return (
-    <TaskPageContainer>
-      {(props) => <BoardContent {...props} />}
-    </TaskPageContainer>
   );
 }
