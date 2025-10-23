@@ -86,10 +86,14 @@ export function AppHeader({ onCreate }: AppHeaderProps) {
             </p>
           </div>
 
-          <Tabs value={activeValue} onValueChange={handleTabChange}>
-            <TabsList className="overflow-x-auto">
+          <Tabs value={activeValue} onValueChange={handleTabChange} className="w-full md:w-auto">
+            <TabsList className="flex w-full flex-wrap gap-2 overflow-visible md:flex-nowrap">
               {navigation.map((item) => (
-                <TabsTrigger key={item.value} value={item.value} className="flex-1 min-w-[0]">
+                <TabsTrigger
+                  key={item.value}
+                  value={item.value}
+                  className="flex-1 min-w-[140px] whitespace-nowrap px-6 py-2 text-base md:min-w-[160px] md:px-8"
+                >
                   {item.label}
                 </TabsTrigger>
               ))}
