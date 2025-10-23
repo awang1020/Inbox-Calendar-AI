@@ -1,3 +1,4 @@
+import "@/context/useTaskStore";
 import { AppShell } from "@/components/layout/AppShell";
 
 export default function HomePage() {
