@@ -19,7 +19,9 @@ FlowTask is a modern, responsive task management experience built with Next.js 1
 │   ├── layout/          # App shell, header, global UI elements
 │   ├── task/            # Task board, filters, forms, and stats
 │   └── theme/           # Theme provider wrapper
-├── context/             # Global state management (TaskProvider)
+├── components/Providers.tsx
+│                       # Client-side wrappers for auth + theming
+├── context/             # Global state management (Zustand store)
 ├── lib/                 # Shared utilities
 ├── public/              # Static assets
 ├── types/               # Shared TypeScript types
@@ -29,7 +31,11 @@ FlowTask is a modern, responsive task management experience built with Next.js 1
 
 ## 🧠 State management
 
-Task state is managed with a lightweight `TaskProvider` that wraps the app and exposes `addTask`, `updateTask`, and `deleteTask` actions through React context and a reducer. This keeps state colocated with UI logic while remaining easy to extend (e.g., replacing with a server-backed store).
+Task state is managed with a lightweight Zustand store defined in `context/useTaskStore.ts`. The store persists to `localStorage` so the task list survives reloads and exposes ergonomic helpers (`addTask`, `updateTask`, `removeTask`, `setTasks`) that can be used throughout the component tree via the `useTaskStore` hook.
+
+## 🔌 Application providers
+
+Auth session context and theme switching are provided by client-only wrappers (see `components/Providers.tsx`). The App Router layout stays a Server Component while the providers ensure `SessionProvider` and `next-themes` run on the client where the React context APIs are available.
 
 ## 🛠️ Getting started
 
