@@ -1,10 +1,12 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
+import { useSession } from "next-auth/react";
 import { endOfWeek, format, isAfter, isBefore, isWithinInterval, startOfWeek, subWeeks } from "date-fns";
 import { AlertTriangle, CheckCircle2, ClipboardList, PieChart as PieChartIcon } from "lucide-react";
 import { Bar, BarChart, Line, LineChart, Pie, PieChart, ResponsiveContainer, Cell } from "@/lib/recharts";
-import { useTasks } from "@/context/TaskContext";
+import { useTaskStore } from "@/context/useTaskStore";
+import { mapApiTask, type ApiTask } from "@/lib/task-sync";
 
 const STATUS_COLORS: Record<string, string> = {
   backlog: "#6366F1",
@@ -29,7 +31,37 @@ function getDeadlineDate(deadline?: string) {
 }
 
 export function AnalyticsDashboard() {
-  const { tasks } = useTasks();
+  const { status } = useSession();
+  const tasks = useTaskStore((state) => state.tasks);
+  const setTasks = useTaskStore((state) => state.setTasks);
+
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    if (tasks.length) return;
+
+    let isCancelled = false;
+
+    async function fetchTasks() {
+      try {
+        const response = await fetch("/api/tasks");
+        if (!response.ok) {
+          throw new Error(`Failed to fetch tasks: ${response.status}`);
+        }
+
+        const data = (await response.json()) as ApiTask[];
+        if (isCancelled) return;
+        setTasks(data.map((task) => mapApiTask(task)));
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    fetchTasks();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [status, tasks.length, setTasks]);
 
   const now = new Date();
 

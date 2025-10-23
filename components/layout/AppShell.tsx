@@ -4,7 +4,6 @@ import { useMemo, useState } from "react";
 import { TaskBoard } from "@/components/task/TaskBoard";
 import { TaskFilters, type Filters } from "@/components/task/TaskFilters";
 import { TaskStats } from "@/components/task/TaskStats";
-import { TaskProvider } from "@/context/TaskContext";
 import type { Task } from "@/types/task";
 import { TaskPageContainer, type TaskPageRenderProps } from "./TaskPageContainer";
 
@@ -62,10 +61,8 @@ function BoardContent({ tasks, onEdit, onDelete, onStatusChange }: TaskPageRende
 
 export function AppShell() {
   return (
-    <TaskProvider>
-      <TaskPageContainer>
-        {(props) => <BoardContent {...props} />}
-      </TaskPageContainer>
-    </TaskProvider>
+    <TaskPageContainer>
+      {(props) => <BoardContent {...props} />}
+    </TaskPageContainer>
   );
 }

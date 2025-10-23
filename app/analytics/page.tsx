@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { AnalyticsDashboard } from "@/components/analytics/AnalyticsDashboard";
-import { TaskProvider } from "@/context/TaskContext";
 
 export const metadata: Metadata = {
   title: "Analytics | FlowTask",
@@ -8,10 +7,6 @@ export const metadata: Metadata = {
 };
 
 export default function AnalyticsPage() {
-  return (
-    <TaskProvider>
-      <AnalyticsDashboard />
-    </TaskProvider>
-  );
+  return <AnalyticsDashboard />;
 }
 
