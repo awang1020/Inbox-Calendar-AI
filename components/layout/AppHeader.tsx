@@ -1,43 +1,78 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { MoonStar, SunMedium } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface AppHeaderProps {
   onCreate: () => void;
 }
 
 const navigation = [
-  { label: "Board", href: "/" },
-  { label: "Today", href: "/today" },
-  { label: "Calendar", href: "/calendar" }
+  { label: "Board", href: "/", value: "board" },
+  { label: "Today", href: "/today", value: "today" },
+  { label: "Calendar", href: "/calendar", value: "calendar" }
 ];
+
+const STORAGE_KEY = "flowtask-active-tab";
 
 export function AppHeader({ onCreate }: AppHeaderProps) {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+  const hasInitializedRef = useRef(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const activeHref = useMemo(() => pathname ?? "/", [pathname]);
+  const activeValue = useMemo(() => {
+    const currentPath = pathname ?? "/";
+    const match = navigation.find((item) =>
+      item.href === "/" ? currentPath === "/" : currentPath.startsWith(item.href)
+    );
+    return match?.value ?? "board";
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!mounted || hasInitializedRef.current) return;
+    hasInitializedRef.current = true;
+
+    if (typeof window === "undefined") return;
+
+    const storedValue = window.localStorage.getItem(STORAGE_KEY);
+    if (!storedValue) return;
+
+    const storedTab = navigation.find((item) => item.value === storedValue);
+    if (storedTab && storedTab.href !== pathname) {
+      router.replace(storedTab.href);
+    }
+  }, [mounted, pathname, router]);
+
+  useEffect(() => {
+    if (!mounted || typeof window === "undefined") return;
+    if (!activeValue) return;
+    window.localStorage.setItem(STORAGE_KEY, activeValue);
+  }, [activeValue, mounted]);
 
   function toggleTheme() {
     setTheme(theme === "dark" ? "light" : "dark");
   }
 
-  function isActive(href: string) {
-    if (!activeHref) return false;
-    if (href === "/") {
-      return activeHref === "/";
+  function handleTabChange(value: string) {
+    const target = navigation.find((item) => item.value === value);
+    if (!target) return;
+
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(STORAGE_KEY, value);
     }
-    return activeHref.startsWith(href);
+
+    if (pathname !== target.href) {
+      router.push(target.href);
+    }
   }
 
   return (
@@ -51,25 +86,15 @@ export function AppHeader({ onCreate }: AppHeaderProps) {
             </p>
           </div>
 
-          <nav className="flex items-center gap-2 overflow-x-auto rounded-full bg-white/60 p-1 text-sm shadow-inner ring-1 ring-black/5 backdrop-blur-sm dark:bg-slate-900/50 dark:ring-white/5">
-            {navigation.map((item) => {
-              const active = isActive(item.href);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "whitespace-nowrap rounded-full px-4 py-2 font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[hsl(var(--accent))]",
-                    active
-                      ? "bg-slate-900 text-white shadow-sm dark:bg-slate-100 dark:text-slate-900"
-                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100"
-                  )}
-                >
+          <Tabs value={activeValue} onValueChange={handleTabChange}>
+            <TabsList className="overflow-x-auto">
+              {navigation.map((item) => (
+                <TabsTrigger key={item.value} value={item.value} className="flex-1 min-w-[0]">
                   {item.label}
-                </Link>
-              );
-            })}
-          </nav>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
         </div>
 
         <div className="flex items-center gap-3 self-end md:self-auto">

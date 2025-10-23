@@ -16,6 +16,7 @@
     "date-fns": "^3.6.0",
     "framer-motion": "^11.18.2",
     "lucide-react": "^0.378.0",
+    "@radix-ui/react-tabs": "^1.0.5",
     "nanoid": "^5.0.7",
     "next": "^16.0.0",
     "next-auth": "^4.24.7",
