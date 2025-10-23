@@ -14,6 +14,7 @@ export interface TaskTag {
 
 export interface Task {
   id: string;
+  userId: string;
   title: string;
   description?: string;
   category: TaskCategory;
