@@ -43,10 +43,12 @@ export function TaskForm({ task, open, onOpenChange, onSubmit }: TaskFormProps) 
   const [draft, setDraft] = useState<Task>(task ?? blankTask);
   const [availableTags, setAvailableTags] = useState<Tag[]>(() => defaultTags);
   const [tagQuery, setTagQuery] = useState("");
+  const [deadlineConfirmed, setDeadlineConfirmed] = useState(() => Boolean(task?.deadline));
 
   useEffect(() => {
     setDraft(task ?? blankTask);
     setTagQuery("");
+    setDeadlineConfirmed(Boolean(task?.deadline));
     if (task?.tags?.length) {
       setAvailableTags((prev) => {
         const map = new Map(prev.map((tag) => [tag.id, tag]));
@@ -192,12 +194,36 @@ export function TaskForm({ task, open, onOpenChange, onSubmit }: TaskFormProps) 
 
             <label className="flex flex-col gap-1">
               <span className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Deadline</span>
-              <input
-                type="datetime-local"
-                value={draft.deadline ? draft.deadline.slice(0, 16) : ""}
-                onChange={(event) => updateDraft("deadline", event.target.value)}
-                className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-[hsl(var(--accent))] focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
-              />
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-2">
+                  <input
+                    type="datetime-local"
+                    value={draft.deadline ? draft.deadline.slice(0, 16) : ""}
+                    onChange={(event) => {
+                      setDeadlineConfirmed(false);
+                      updateDraft("deadline", event.target.value);
+                    }}
+                    className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-[hsl(var(--accent))] focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setDeadlineConfirmed(Boolean(draft.deadline))}
+                    disabled={!draft.deadline || deadlineConfirmed}
+                    className={`inline-flex items-center justify-center rounded-lg px-3 py-2 text-sm font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[hsl(var(--accent))] ${
+                      deadlineConfirmed
+                        ? "border border-emerald-500 bg-emerald-50 text-emerald-700 dark:border-emerald-500/60 dark:bg-emerald-500/10 dark:text-emerald-300"
+                        : "border border-[hsl(var(--accent))] bg-[hsl(var(--accent))] text-white disabled:border-slate-200 disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:border-slate-800 dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
+                    }`}
+                  >
+                    {deadlineConfirmed ? "Confirmed" : "Confirm"}
+                  </button>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {deadlineConfirmed
+                    ? "Deadline confirmed. You're all set!"
+                    : "Select a date and confirm to lock in your deadline."}
+                </p>
+              </div>
             </label>
 
             <label className="flex flex-col gap-1">
