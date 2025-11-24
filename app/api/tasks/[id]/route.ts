@@ -71,7 +71,19 @@ export async function PATCH(
     return NextResponse.json({ error: "Not Found" }, { status: 404 });
   }
 
-  const updated = await prisma.task.findUnique({ where: { id: params.id } });
+  const updated = await prisma.task.findFirst({
+    where: { id: params.id, userId: session.user.id },
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      status: true,
+      priority: true,
+      category: true,
+      dueAt: true,
+      userId: true
+    }
+  });
   return NextResponse.json(updated);
 }
 

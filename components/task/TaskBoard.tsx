@@ -47,13 +47,27 @@ export function TaskBoard({ tasks, onEdit, onDelete, onStatusChange }: TaskBoard
     );
   }
 
+  // Group tasks by status once to avoid repeated filtering during render
+  const grouped: Record<TaskStatus, Task[]> = {
+    backlog: [],
+    in_progress: [],
+    in_review: [],
+    completed: []
+  };
+
+  for (const task of tasks) {
+    // Fallback guard for unexpected values
+    const key = (task.status ?? "backlog") as TaskStatus;
+    if (grouped[key]) grouped[key].push(task);
+  }
+
   return (
     <section className="grid flex-1 gap-4 pb-10 md:grid-cols-2 xl:grid-cols-4">
       {columns.map((column) => (
         <TaskColumn
           key={column.status}
           column={column}
-          tasks={tasks.filter((task) => task.status === column.status)}
+          tasks={grouped[column.status]}
           onEdit={onEdit}
           onDelete={onDelete}
           onStatusChange={onStatusChange}
