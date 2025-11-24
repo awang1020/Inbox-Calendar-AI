@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
+import { nanoid } from "nanoid";
 import { Plus } from "lucide-react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { TaskForm } from "@/components/task/TaskForm";
@@ -14,6 +15,7 @@ import {
   mapApiTask,
   type ApiTask,
 } from "@/lib/task-sync";
+import { DEFAULT_USER_ID } from "@/lib/constants";
 import type { Task } from "@/types/task";
 
 export interface TaskPageRenderProps {
@@ -93,6 +95,29 @@ export function TaskPageContainer({ children }: TaskPageContainerProps) {
       tags: task.tags ?? [],
     };
 
+    if (status !== "authenticated") {
+      if (editingTask) {
+        replaceTask(normalized);
+      } else {
+        const generatedId =
+          normalized.id && normalized.id !== "temp"
+            ? normalized.id
+            : typeof crypto !== "undefined" && "randomUUID" in crypto
+              ? crypto.randomUUID()
+              : nanoid();
+
+        addTask({
+          ...normalized,
+          id: generatedId,
+          userId: normalized.userId ?? DEFAULT_USER_ID,
+        });
+      }
+
+      setIsFormOpen(false);
+      setEditingTask(null);
+      return;
+    }
+
     try {
       if (editingTask) {
         const { tags, completed, id: _ignored, userId: _userId, ...rest } = normalized;
@@ -146,17 +171,19 @@ export function TaskPageContainer({ children }: TaskPageContainerProps) {
     const existing = tasks.find((task) => task.id === id);
     removeTask(id);
 
+    if (status !== "authenticated" || !existing) {
+      return;
+    }
+
     try {
       const response = await fetch(`/api/tasks/${id}`, { method: "DELETE" });
-      if (!response.ok && existing) {
+      if (!response.ok) {
         throw new Error(`Failed to delete task: ${response.status}`);
       }
     } catch (error) {
       console.error(error);
-      if (existing) {
-        // Restore the task if deletion failed
-        replaceTask(existing);
-      }
+      // Restore the task if deletion failed
+      replaceTask(existing);
     }
   }
 
@@ -175,6 +202,10 @@ export function TaskPageContainer({ children }: TaskPageContainerProps) {
     };
 
     replaceTask(merged);
+
+    if (status !== "authenticated") {
+      return;
+    }
 
     try {
       const { tags, completed, id: _ignored, userId: _userId, ...rest } = merged;
